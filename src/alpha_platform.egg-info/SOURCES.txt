@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+src/alpha_platform/__init__.py
+src/alpha_platform/cli.py
+src/alpha_platform.egg-info/PKG-INFO
+src/alpha_platform.egg-info/SOURCES.txt
+src/alpha_platform.egg-info/dependency_links.txt
+src/alpha_platform.egg-info/entry_points.txt
+src/alpha_platform.egg-info/requires.txt
+src/alpha_platform.egg-info/top_level.txt
+tests/test_smoke.py
