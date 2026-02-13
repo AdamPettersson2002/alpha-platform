@@ -9,4 +9,6 @@ src/alpha_platform.egg-info/dependency_links.txt
 src/alpha_platform.egg-info/entry_points.txt
 src/alpha_platform.egg-info/requires.txt
 src/alpha_platform.egg-info/top_level.txt
+src/alpha_platform/data/ingestion.py
+tests/test_data_ingestion.py
 tests/test_smoke.py
