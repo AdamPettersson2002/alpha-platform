@@ -1,0 +1,10 @@
+tickers:
+  - SPY  # S&P 500 (US Equities)
+  - QQQ  # Nasdaq 100 (Tech Equities)
+  - TLT  # 20+ Year Treasury Bonds (Safe Haven / Rates)
+  - GLD  # Gold (Commodity / Inflation Hedge)
+
+start_date: "2015-01-01"
+end_date: "2024-01-01"
+
+output_dir: "data/raw"
