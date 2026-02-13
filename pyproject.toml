@@ -18,6 +18,7 @@ dependencies = [
   "pydantic",
   "typer",
   "rich",
+  "PyYAML",
 ]
 
 [project.scripts]
