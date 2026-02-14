@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from rich.console import Console
 
 console = Console()
