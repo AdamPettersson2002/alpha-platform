@@ -48,7 +48,6 @@ def run_iterative_backtest(df: pd.DataFrame, initial_capital: float = 100_000.0,
 
     # --- The Core Iterative Loop ---
     for t in range(len(dates)):
-        current_date = dates[t]
         current_prices = prices.iloc[t].fillna(0.0)
 
         # 1. Mark-to-Market (What are we worth today?)
