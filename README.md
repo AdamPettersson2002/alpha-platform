@@ -33,7 +33,8 @@ The platform is currently under active development, adhering to a strict milesto
 - [x] **M1: Foundation** - Package architecture (`src/` layout), CLI scaffolding, linting, testing, and CI/CD pipelines.
 - [x] **M2: Data Layer** - Defensive data ingestion via `yfinance`, calendar alignment, missingness tracking, and immutable Parquet dataset generation.
 - [x] **M3: Feature Pipeline** - Implementation of strictly-timed feature transformations (returns, volatility, trend) backed by mathematical leakage tests.
-- [ ] *M4: Backtest Engine v1 (Next)* - Core simulation loop, holdings update logic, and transaction cost modeling.
+- [x] **M4: Backtest Engine** - Wide-Matrix Iterative simulation loop with realistic state-tracking, turnover calculation, and transaction costs.
+- [ ] *M5: Signals & Baselines (Next)* - Implementing the Trend-Following rule-based strategy to compete against the Equal-Weight baseline.
 
 ---
 
@@ -64,6 +65,17 @@ $$
 $$
 
 * **Qualitative:** The rolling standard deviation of 1-day log returns over a $W$-day lookback window. This metric quantifies the current market risk and is strictly used downstream in the portfolio construction layer to dynamically size positions (Volatility Targeting).
+
+---
+
+## Backtest Engine Architecture (M4)
+
+The platform utilizes a **Wide-Matrix Iterative** backtest engine. This architecture was chosen over pure vectorization to support path-dependent realistic trading mechanics:
+
+1. **State Tracking:** Maintains explicit running balances of Cash and Shares Held. This allows transaction costs to correctly reduce purchasing power, resulting in a compounding, highly realistic equity curve.
+2. **Weight Drift Calculation:** Because the engine holds discrete shares rather than abstract weights, intra-day portfolio weights naturally "drift" with asset price movements.
+3. **Turnover & Costs:** Daily turnover is dynamically calculated as the absolute difference between the newly requested target capital and the drifted current capital, multiplied by a configurable bps cost rate.
+4. **No-Peeking Guarantee:** The engine iterates strictly forward in time (`for t in range(len(dates))`), mathematically preventing day $T$ operations from accessing day $T+1$ execution prices.
 
 ---
 *Disclaimer: Educational research code. Not investment advice.*
