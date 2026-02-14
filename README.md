@@ -32,8 +32,38 @@ The platform is currently under active development, adhering to a strict milesto
 
 - [x] **M1: Foundation** - Package architecture (`src/` layout), CLI scaffolding, linting, testing, and CI/CD pipelines.
 - [x] **M2: Data Layer** - Defensive data ingestion via `yfinance`, calendar alignment, missingness tracking, and immutable Parquet dataset generation.
-- [ ] *M3: Feature Pipeline (Next)* - Implementation of strictly-timed feature transformations (returns, volatility, trend).
-- [ ] *M4: Backtest Engine v1* - Core simulation loop, holdings update logic, and transaction cost modeling.
+- [x] **M3: Feature Pipeline** - Implementation of strictly-timed feature transformations (returns, volatility, trend) backed by mathematical leakage tests.
+- [ ] *M4: Backtest Engine v1 (Next)* - Core simulation loop, holdings update logic, and transaction cost modeling.
+
+---
+
+## Feature Engineering (M3)
+
+The feature pipeline transforms raw pricing data into stationary, predictive signals and risk metrics. To strictly prevent look-ahead bias, the platform enforces a mathematical shifting rule: any feature calculated using data up to day $T$ is shifted to day $T+1$.
+
+### 1. Log Returns
+
+$$
+R_{t, N} = \ln\left(\frac{P_t}{P_{t-N}}\right)
+$$
+
+* **Qualitative:** The continuously compounded return of the asset over an $N$-day window. Log returns are utilized because they are time-additive and symmetric, making them statistically superior to simple percentage returns for quantitative modeling and machine learning targets.
+
+### 2. Trend Feature (SMA Ratio)
+
+$$
+\text{Trend}_t = \frac{\frac{1}{S} \sum_{i=0}^{S-1} P_{t-i}}{\frac{1}{L} \sum_{i=0}^{L-1} P_{t-i}}
+$$
+
+* **Qualitative:** A momentum oscillator calculated as the ratio of a fast moving average (e.g., $S=20$ days) to a slow moving average (e.g., $L=200$ days). A value greater than 1.0 mathematically defines a bullish short-term trend. This serves as the primary signal for baseline rule-based strategies.
+
+### 3. Risk Feature (Rolling Volatility)
+
+$$
+\sigma_{t, W} = \sqrt{\frac{1}{W-1} \sum_{i=0}^{W-1} (R_{t-i, 1} - \bar{R})^2}
+$$
+
+* **Qualitative:** The rolling standard deviation of 1-day log returns over a $W$-day lookback window. This metric quantifies the current market risk and is strictly used downstream in the portfolio construction layer to dynamically size positions (Volatility Targeting).
 
 ---
 *Disclaimer: Educational research code. Not investment advice.*
