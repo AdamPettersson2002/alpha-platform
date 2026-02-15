@@ -5,6 +5,7 @@ import numpy as np
 from alpha_platform.data.ingestion import run_ingestion
 from alpha_platform.features.builder import build_features
 from alpha_platform.backtest.engine import run_iterative_backtest
+from alpha_platform.signals.baselines import equal_weight_strategy, trend_following_strategy
 
 app = typer.Typer(help="Alpha Platform CLI")
 
@@ -54,27 +55,37 @@ def features():
 @app.command()
 def backtest(
         costs: float = typer.Option(5.0, "--costs", help="Transaction costs in basis points (bps)"),
-        capital: float = typer.Option(100000.0, "--capital", help="Starting capital")
+        capital: float = typer.Option(100000.0, "--capital", help="Starting capital"),
+        strategy: str = typer.Option("trend", "--strategy", "-s", help="Strategy to run: 'equal_weight' or 'trend'")
 ):
     """
-    Run a Wide-Matrix Iterative backtest using an Equal Weight baseline.
+    Run a Wide-Matrix Iterative backtest using a specific strategy.
     """
     features_path = Path("data/features/universe_features.parquet")
 
     if not features_path.exists():
-        print(f"Error: Features not found at {features_path}. Run 'alpha features' first.")
+        print(f"Error: Features not found. Run 'alpha features' first.")
         raise typer.Exit(1)
 
     print(f"Loading features from {features_path}...")
     df = pd.read_parquet(features_path)
 
-    print(f"Running Wide-Matrix Iterative backtest with {costs} bps costs...")
+    # --- The Brain: Generate Target Weights ---
+    print(f"Applying [cyan]{strategy}[/cyan] signal logic...")
+    if strategy == "equal_weight":
+        df = equal_weight_strategy(df)
+    elif strategy == "trend":
+        df = trend_following_strategy(df)
+    else:
+        print(f"[red]Error: Unknown strategy '{strategy}'[/red]")
+        raise typer.Exit(1)
+
+    # --- The Engine: Execute Trades ---
+    print(f"Running Iterative backtest with {costs} bps costs...")
     results = run_iterative_backtest(df, initial_capital=capital, cost_bps=costs)
 
-    # Compute high-level metrics for the terminal
+    # Compute metrics
     total_return = (results['cumulative_net'].iloc[-1] - 1) * 100
-
-    # Only calculate vol and sharpe if we have returns
     if len(results) > 1 and results['net_ret'].std() > 0:
         annualized_vol = results['net_ret'].std() * np.sqrt(252) * 100
         sharpe = (results['net_ret'].mean() / results['net_ret'].std()) * np.sqrt(252)
@@ -91,7 +102,7 @@ def backtest(
     print(f"Average Daily Turnover:  {avg_daily_turnover:.2f}%")
 
     # Save the results
-    out_path = Path("data/reports/backtest_results.parquet")
+    out_path = Path(f"data/reports/backtest_results_{strategy}.parquet")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     results.to_parquet(out_path)
     print(f"\nResults saved to {out_path}")
