@@ -64,7 +64,7 @@ def backtest(
     features_path = Path("data/features/universe_features.parquet")
 
     if not features_path.exists():
-        print(f"Error: Features not found. Run 'alpha features' first.")
+        print("Error: Features not found. Run 'alpha features' first.")
         raise typer.Exit(1)
 
     print(f"Loading features from {features_path}...")
